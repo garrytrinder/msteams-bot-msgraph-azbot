@@ -19,6 +19,8 @@ param serverfarmsName string = resourceBaseName
 param webAppName string = resourceBaseName
 param location string = resourceGroup().location
 
+param oauthConnectionName string
+
 // Compute resources for your Web App
 resource serverfarm 'Microsoft.Web/serverfarms@2021-02-01' = {
   kind: 'app'
@@ -72,8 +74,10 @@ module azureBotRegistration './botRegistration/azurebot.bicep' = {
   params: {
     resourceBaseName: resourceBaseName
     botAadAppClientId: botAadAppClientId
+    botAddAppClientSecret: botAadAppClientSecret
     botAppDomain: webApp.properties.defaultHostName
     botDisplayName: botDisplayName
+    oauthConnectionName: oauthConnectionName
   }
 }
 

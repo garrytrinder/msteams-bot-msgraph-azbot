@@ -14,26 +14,33 @@ provision:
     writeToEnvironmentFile:
       teamsAppId: TEAMS_APP_ID
 
-  # Create or reuse an existing Azure Active Directory application for bot.
-  - uses: botAadApp/create
+  - uses: aadApp/create
     with:
-      # The Azure Active Directory application's display name
       name: bot-products-spo-${{TEAMSFX_ENV}}
+      generateClientSecret: true
+      signInAudience: AzureADMultipleOrgs
     writeToEnvironmentFile:
-      # The Azure Active Directory application's client id created for bot.
-      botId: BOT_ID
-      # The Azure Active Directory application's client secret created for bot.
-      botPassword: SECRET_BOT_PASSWORD
+      clientId: BOT_ID
+      clientSecret: SECRET_BOT_PASSWORD
+      objectId: AAD_APP_OBJECT_ID
+      tenantId: AAD_APP_TENANT_ID
+      authority: AAD_APP_OAUTH_AUTHORITY
+      authorityHost: AAD_APP_OAUTH_AUTHORITY_HOST
 
-  # Create or update the bot registration on dev.botframework.com
-  - uses: botFramework/create
+  - uses: aadApp/update
     with:
-      botId: ${{BOT_ID}}
-      name: bot-products-spo
-      messagingEndpoint: ${{BOT_ENDPOINT}}/api/messages
-      description: ""
-      channels:
-        - name: msteams
+      manifestPath: ./aad.manifest.json
+      outputFilePath : ./build/aad.manifest.${{TEAMSFX_ENV}}.json
+  
+  - uses: arm/deploy
+    with:
+      subscriptionId: ${{AZURE_SUBSCRIPTION_ID}}
+      resourceGroupName: ${{AZURE_RESOURCE_GROUP_NAME}}
+      templates:
+        - path: ./infra/azure.local.bicep
+          parameters: ./infra/azure.parameters.local.json
+          deploymentName: Create-local-resources-for-bot-products-spo-${{TEAMSFX_ENV}}
+      bicepCliVersion: v0.9.1
 
   # Validate using manifest schema
   - uses: teamsApp/validateManifest

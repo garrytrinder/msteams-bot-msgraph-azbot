@@ -16,6 +16,9 @@
     },
     "botDisplayName": {
       "value": "bot-products-spo"
+    },
+    "oauthConnectionName": {
+      "value": "${{OAUTH_CONNECTION_NAME}}"
     }
   }
 }
