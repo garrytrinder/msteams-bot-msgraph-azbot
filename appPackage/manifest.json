@@ -15,8 +15,8 @@
     "outline": "outline.png"
   },
   "name": {
-    "short": "msteams-bot-msgraph-azbot-${{TEAMSFX_ENV}}",
-    "full": "full name for msteams-bot-msgraph-azbot"
+    "short": "msteams-bot-msgraph-azbot",
+    "full": "msteams-bot-msgraph-azbot-${{TEAMSFX_ENV}}"
   },
   "description": {
     "short": "short description for msteams-bot-msgraph-azbot",
