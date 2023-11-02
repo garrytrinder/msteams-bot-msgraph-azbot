@@ -49,7 +49,7 @@ resource botServicesMicrosoftGraphConnection 'Microsoft.BotService/botServices/c
     serviceProviderId: '30dd229c-58e3-4a48-bdfd-91ec48eb906c'
     clientId: botAadAppClientId
     clientSecret: botAddAppClientSecret
-    scopes: 'email offline_access openid profile Sites.Read.All User.Read'
+    scopes: 'User.Read'
     parameters: [
       {
         key: 'tenantID'
