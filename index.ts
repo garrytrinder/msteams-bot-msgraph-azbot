@@ -1,5 +1,5 @@
 // Import required packages
-import * as restify from "restify";
+import * as restify from 'restify';
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
@@ -8,18 +8,22 @@ import {
   ConfigurationServiceClientCredentialFactory,
   ConfigurationBotFrameworkAuthentication,
   TurnContext,
-} from "botbuilder";
+  ConversationState,
+  MemoryStorage,
+  UserState,
+} from 'botbuilder';
 
 // This bot's main dialog.
-import { TeamsBot } from "./teamsBot";
-import config from "./config";
+import {TeamsBot} from './src/teamsBot';
+import config from './config';
+import {MainDialog} from './src/dialogs/mainDialog';
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
   MicrosoftAppId: config.botId,
   MicrosoftAppPassword: config.botPassword,
-  MicrosoftAppType: "MultiTenant",
+  MicrosoftAppType: 'MultiTenant',
 });
 
 const botFrameworkAuthentication = new ConfigurationBotFrameworkAuthentication(
@@ -38,22 +42,35 @@ const onTurnErrorHandler = async (context: TurnContext, error: Error) => {
 
   // Send a trace activity, which will be displayed in Bot Framework Emulator
   await context.sendTraceActivity(
-    "OnTurnError Trace",
+    'OnTurnError Trace',
     `${error}`,
-    "https://www.botframework.com/schemas/error",
-    "TurnError"
+    'https://www.botframework.com/schemas/error',
+    'TurnError'
   );
 
   // Send a message to the user
-  await context.sendActivity(`The bot encountered unhandled error:\n ${error.message}`);
-  await context.sendActivity("To continue to run this bot, please fix the bot source code.");
+  await context.sendActivity(
+    `The bot encountered unhandled error:\n ${error.message}`
+  );
+  await context.sendActivity(
+    'To continue to run this bot, please fix the bot source code.'
+  );
+
+  // Clear out state
+  await conversationState.delete(context);
 };
 
 // Set the onTurnError for the singleton CloudAdapter.
 adapter.onTurnError = onTurnErrorHandler;
 
+const memoryStorage = new MemoryStorage();
+const conversationState = new ConversationState(memoryStorage);
+const userState = new UserState(memoryStorage);
+
+const dialog = new MainDialog();
+
 // Create the bot that will handle incoming messages.
-const bot = new TeamsBot();
+const bot = new TeamsBot(conversationState, userState, dialog);
 
 // Create HTTP server.
 const server = restify.createServer();
@@ -63,8 +80,9 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 });
 
 // Listen for incoming requests.
-server.post("/api/messages", async (req, res) => {
-  await adapter.process(req, res, async (context) => {
+server.post('/api/messages', async (req, res) => {
+  await adapter.process(req, res, async context => {
+    console.log('index: adapter.process');
     await bot.run(context);
   });
 });
