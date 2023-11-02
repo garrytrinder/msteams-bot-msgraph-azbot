@@ -1,7 +1,7 @@
 {
-  "name": "botproductsspo",
+  "name": "msteams-bot-msgraph-azbot",
   "version": "1.0.0",
-  "description": "Microsoft Teams Toolkit hello world Bot sample",
+  "description": "A sample that uses Teams Toolkit for Visual Studio Code Basic Bot template updated with SSO and Azure Bot Service for local development",
   "engines": {
     "node": "16 || 18"
   },
