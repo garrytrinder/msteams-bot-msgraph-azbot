@@ -8,7 +8,7 @@ provision:
   - uses: teamsApp/create
     with:
       # Teams app name
-      name: bot-products-spo-${{TEAMSFX_ENV}}
+      name: msteams-bot-msgraph-azbot-${{TEAMSFX_ENV}}
     # Write the information of created resources into environment file for
     # the specified environment variable(s).
     writeToEnvironmentFile:
@@ -16,7 +16,7 @@ provision:
 
   - uses: aadApp/create
     with:
-      name: bot-products-spo-${{TEAMSFX_ENV}}
+      name: msteams-bot-msgraph-azbot-${{TEAMSFX_ENV}}
       generateClientSecret: true
       signInAudience: AzureADMultipleOrgs
     writeToEnvironmentFile:
@@ -39,7 +39,7 @@ provision:
       templates:
         - path: ./infra/azure.local.bicep
           parameters: ./infra/azure.parameters.local.json
-          deploymentName: Create-local-resources-for-bot-products-spo-${{TEAMSFX_ENV}}
+          deploymentName: Create-local-resources-for-msteams-bot-msgraph-azbot-${{TEAMSFX_ENV}}
       bicepCliVersion: v0.9.1
 
   # Validate using manifest schema
