@@ -35,20 +35,6 @@ export class TeamsBot extends TeamsActivityHandler {
         await next();
       }
     );
-
-    this.onMembersAdded(async (context, next): Promise<void> => {
-      console.log('TeamsBot: onMembersAdded');
-      const {membersAdded} = context.activity;
-      for (let cnt = 0; cnt < membersAdded.length; cnt++) {
-        if (membersAdded[cnt].id) {
-          await context.sendActivity(
-            "Hi there! I'm a Teams bot that will echo what you said to me."
-          );
-          break;
-        }
-      }
-      await next();
-    });
   }
 
   async handleTeamsSigninVerifyState(context: TurnContext): Promise<void> {
