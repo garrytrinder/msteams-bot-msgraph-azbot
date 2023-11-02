@@ -1,69 +1,38 @@
-# Overview of the Basic Bot template
+# Teams Toolkit for Visual Studio Code Basic Bot template with SSO and Azure Bot Service for local development
 
-Examples of Microsoft Teams bots in everyday use include:
+This sample extends the out of the box Basic Bot project template in Teams Toolkit for Visual Studio Code and makes the following changes\enhancements.
 
-- Bots that notify about build failures.
-- Bots that provide information about the weather or bus schedules.
-- Bots that provide travel information.
+- Uses Azure Bot Service for local development loop instead of [Microsoft Bot Framework](https://dev.botframework.com/) bot registration
+- Uses `aadApp/create` and `aadApp/update` tasks to create Microsoft Entra ID app registration for Azure Bot Service with app registration manifest in local development
+- Uses `arm/deploy` task to update Azure Bot Service during local development, updates messaging endpoint and OAuth connection setting
+- Uses [Azure Bot Service Token Service](https://learn.microsoft.com/azure/bot-service/bot-builder-concept-authentication?view=azure-bot-service-4.0#about-the-bot-framework-token-service) to simplify authentication flow
+- Uses [Dialogs library](https://learn.microsoft.com/en-us/azure/bot-service/bot-builder-concept-dialog) to obtain access token for Microsoft Graph using OAuthPrompt
+- Uses linting (ESLint) and formatting (Prettier) rules for code consistency, configured using [GTS](https://github.com/google/gts) (Google TypeScript Style)
+- Updated project dependencies to latest major versions (as of November '23)
 
-A bot interaction can be a quick question and answer, or it can be a complex conversation. Being a cloud application, a bot can provide valuable and secure access to cloud services and corporate resources.
+> ℹ️ This sample goes as far as obtaining a valid access token that can be used to call Microsoft Graph API. This is intentional leaving it open for you as a developer to choose your own path and leave this as un-opinionated as possible.
 
-## Get started with the Basic Bot template
+## Prerequisites
 
-> **Prerequisites**
->
-> To run the Basic Bot template in your local dev machine, you will need:
->
-> - [Node.js](https://nodejs.org/), supported versions: 16, 18
-> - A [Microsoft 365 account for development](https://docs.microsoft.com/microsoftteams/platform/toolkit/accounts)
-> - [Teams Toolkit Visual Studio Code Extension](https://aka.ms/teams-toolkit) version 5.0.0 and higher or [Teams Toolkit CLI](https://aka.ms/teamsfx-cli)
+- Teams Toolkit for Visual Studio Code
+- Microsoft 365 tenant with [uploading custom apps enabled](https://learn.microsoft.com/microsoftteams/platform/m365-apps/prerequisites#prepare-a-developer-tenant-for-testing)
+- Account with access to an active Azure subscription and has permissions to create a resource group
 
-1. First, select the Teams Toolkit icon on the left in the VS Code toolbar.
-2. In the Account section, sign in with your [Microsoft 365 account](https://docs.microsoft.com/microsoftteams/platform/toolkit/accounts) if you haven't already.
-3. Press F5 to start debugging which launches your app in Teams using a web browser. Select `Debug (Edge)` or `Debug (Chrome)`.
-4. When Teams launches in the browser, select the Add button in the dialog to install your app to Teams.
-5. You will receive a welcome message from the bot, and you can send anything to the bot to get an echoed response.
+## Get started
 
-**Congratulations**! You are running an application that can now interact with users in Teams:
+- Clone repo
+- Open repo in VSCode
+- Take a copy of all the files in `env` folder and remove `.sample` from the copies, for example, `.env.local.sample` becomes `.env.local`
+- Press `F5`, follow the sign in prompts
 
-![basic bot](https://github.com/OfficeDev/TeamsFx/assets/25220706/8f5645ed-1cd9-43fd-9513-b0c9697d7dc0)
+> ℹ️ The `arm/deploy` task generates a prompt that you need to confirm to provision or update the Azure Bot Service in Azure. The Azure Bot Service is provisioned using the free tier.
 
-## What's included in the template
+## Test the bot
 
-| Folder       | Contents                                            |
-| - | - |
-| `.vscode`    | VSCode files for debugging                          |
-| `appPackage` | Templates for the Teams application manifest        |
-| `env`        | Environment files                                   |
-| `infra`      | Templates for provisioning Azure resources          |
+Send a message to the bot and an Adaptive Card will be returned with the access token to call Microsoft Graph.
 
-The following files can be customized and demonstrate an example implementation to get you started.
+![Screenshot of sign in ](./assets/bot-signin.png)
 
-| File                                 | Contents                                           |
-| - | - |
-|`teamsBot.ts`| Handles business logics for the Basic Bot.|
-|`index.ts`|`index.ts` is used to setup and configure the Basic Bot.|
+![Screenshot of Microsoft Entra consent](./assets/bot-consent.png)
 
-The following are Teams Toolkit specific project files. You can [visit a complete guide on Github](https://github.com/OfficeDev/TeamsFx/wiki/Teams-Toolkit-Visual-Studio-Code-v5-Guide#overview) to understand how Teams Toolkit works.
-
-| File                                 | Contents                                           |
-| - | - |
-|`teamsapp.yml`|This is the main Teams Toolkit project file. The project file defines two primary things:  Properties and configuration Stage definitions. |
-|`teamsapp.local.yml`|This overrides `teamsapp.yml` with actions that enable local execution and debugging.|
-
-## Extend the Basic Bot template
-
-Following documentation will help you to extend the Basic Bot template.
-
-- [Add or manage the environment](https://learn.microsoft.com/microsoftteams/platform/toolkit/teamsfx-multi-env)
-- [Create multi-capability app](https://learn.microsoft.com/microsoftteams/platform/toolkit/add-capability)
-- [Add single sign on to your app](https://learn.microsoft.com/microsoftteams/platform/toolkit/add-single-sign-on)
-- [Access data in Microsoft Graph](https://learn.microsoft.com/microsoftteams/platform/toolkit/teamsfx-sdk#microsoft-graph-scenarios)
-- [Use an existing Azure Active Directory application](https://learn.microsoft.com/microsoftteams/platform/toolkit/use-existing-aad-app)
-- [Customize the Teams app manifest](https://learn.microsoft.com/microsoftteams/platform/toolkit/teamsfx-preview-and-customize-app-manifest)
-- Host your app in Azure by [provision cloud resources](https://learn.microsoft.com/microsoftteams/platform/toolkit/provision) and [deploy the code to cloud](https://learn.microsoft.com/microsoftteams/platform/toolkit/deploy)
-- [Collaborate on app development](https://learn.microsoft.com/microsoftteams/platform/toolkit/teamsfx-collaboration)
-- [Set up the CI/CD pipeline](https://learn.microsoft.com/microsoftteams/platform/toolkit/use-cicd-template)
-- [Publish the app to your organization or the Microsoft Teams app store](https://learn.microsoft.com/microsoftteams/platform/toolkit/publish)
-- [Develop with Teams Toolkit CLI](https://aka.ms/teamsfx-cli/debug)
-- [Preview the app on mobile clients](https://github.com/OfficeDev/TeamsFx/wiki/Run-and-debug-your-Teams-application-on-iOS-or-Android-client)
+![Screenshot of token for Microsoft Graph rendered in an Adaptive Card](./assets/bot-token.png)
