@@ -21,6 +21,15 @@ param location string = resourceGroup().location
 
 param oauthConnectionName string
 
+module azureCosmosDB './cosmosDB/azureCosmosDB.bicep' = {
+  name: 'Azure-CosmosDB'
+  params: {
+    accountName: resourceBaseName
+    databaseName: resourceBaseName
+    location: location
+  }
+}
+
 // Compute resources for your Web App
 resource serverfarm 'Microsoft.Web/serverfarms@2021-02-01' = {
   kind: 'app'
@@ -61,6 +70,26 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
         {
           name: 'BOT_PASSWORD'
           value: botAadAppClientSecret
+        }
+        {
+          name: 'OAUTH_CONNECTION_NAME'
+          value: oauthConnectionName
+        }
+        {
+          name: 'COSMOS_DB_ENDPOINT'
+          value: azureCosmosDB.outputs.COSMOS_DB_ENDPOINT
+        }
+        {
+          name: 'COSMOS_DB_DATABASE_ID'
+          value: azureCosmosDB.outputs.COSMOS_DB_DATABASE_ID
+        }
+        {
+          name: 'COSMOS_DB_CONTAINER_ID'
+          value: azureCosmosDB.outputs.COSMOS_DB_CONTAINER_ID
+        }
+        {
+          name: 'COSMOS_DB_AUTH_KEY'
+          value: azureCosmosDB.outputs.SECRET_COSMOS_DB_AUTH_KEY
         }
       ]
       ftpsState: 'FtpsOnly'

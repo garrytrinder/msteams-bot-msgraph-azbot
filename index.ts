@@ -8,7 +8,6 @@ import {
   ConversationState,
   ConfigurationServiceClientCredentialFactory,
   ConfigurationBotFrameworkAuthentication,
-  MemoryStorage,
   TeamsSSOTokenExchangeMiddleware,
   TurnContext,
   UserState,
@@ -18,6 +17,7 @@ import {
 import {TeamsBot} from './src/teamsBot';
 import config from './config';
 import {MainDialog} from './src/dialogs/mainDialog';
+import {CosmosDbPartitionedStorage} from 'botbuilder-azure';
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
@@ -56,19 +56,16 @@ const onTurnErrorHandler = async (context: TurnContext, error: Error) => {
   await context.sendActivity(
     'To continue to run this bot, please fix the bot source code.'
   );
-
-  // Clear out state
-  await conversationState.delete(context);
 };
 
 // Set the onTurnError for the singleton CloudAdapter.
 adapter.onTurnError = onTurnErrorHandler;
 
-const memoryStorage = new MemoryStorage();
-const conversationState = new ConversationState(memoryStorage);
-const userState = new UserState(memoryStorage);
+const storage = new CosmosDbPartitionedStorage(config.cosmosDbStorageOptions);
+const conversationState = new ConversationState(storage);
+const userState = new UserState(storage);
 const tokenExchangeMiddleware = new TeamsSSOTokenExchangeMiddleware(
-  memoryStorage,
+  storage,
   config.oauthConnectionName
 );
 
