@@ -28,6 +28,7 @@ This sample extends the out of the box Basic Bot project template in Teams Toolk
 - Press `F5`, follow the sign in prompts
 
 > ℹ️ The `arm/deploy` task generates a prompt that you need to confirm to provision or update the Azure Bot Service in Azure. The Azure Bot Service and Azure Cosmos DB are provisioned using the free tiers, so no cost will be incurred.
+>
 > ⚠️ If you already have an Azure Cosmos DB account that uses the free-tier in your target Azure subscription the provisioning will fail. There is a limitation on one free tier account per Azure subscription.
 
 ## Test the bot
