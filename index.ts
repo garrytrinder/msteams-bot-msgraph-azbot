@@ -5,11 +5,12 @@ import * as restify from 'restify';
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
 import {
   CloudAdapter,
+  ConversationState,
   ConfigurationServiceClientCredentialFactory,
   ConfigurationBotFrameworkAuthentication,
-  TurnContext,
-  ConversationState,
   MemoryStorage,
+  TeamsSSOTokenExchangeMiddleware,
+  TurnContext,
   UserState,
 } from 'botbuilder';
 
@@ -66,6 +67,12 @@ adapter.onTurnError = onTurnErrorHandler;
 const memoryStorage = new MemoryStorage();
 const conversationState = new ConversationState(memoryStorage);
 const userState = new UserState(memoryStorage);
+const tokenExchangeMiddleware = new TeamsSSOTokenExchangeMiddleware(
+  memoryStorage,
+  config.oauthConnectionName
+);
+
+adapter.use(tokenExchangeMiddleware);
 
 const dialog = new MainDialog();
 
