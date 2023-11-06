@@ -46,3 +46,46 @@ Send a message to the bot and an Adaptive Card will be returned with the access 
 To manage the conversation state saved to Azure Cosmos DB, use the web based [Azure Cosmos DB Explorer](https://cosmos.azure.com/).
 
 ![Screenshot of conversation state entry in Azure Cosmos DB Explorer](./assets/cosmos-db-explorer.png)
+
+## Sequence Diagram for F5
+
+```mermaid
+sequenceDiagram
+    actor Developer
+    participant .vscode/launch.json
+    participant .vscode/tasks.json
+    participant teamsapp.local.yml
+    participant TDP
+    participant Azure
+    participant npm
+
+    Developer->>+.vscode/launch.json:"Debug in Teams (Edge)" F5
+    
+    .vscode/launch.json->>+.vscode/tasks.json:Start Teams App Locally
+    
+    .vscode/tasks.json->>.vscode/tasks.json:Validate prerequisites (teamsfx)
+    .vscode/tasks.json->>.vscode/tasks.json:Start local tunnel (teamsfx)
+  
+    .vscode/tasks.json->>+teamsapp.local.yml: Provision (teamsfx)
+    teamsapp.local.yml->>TDP:teamsApp/create
+    teamsapp.local.yml->>Azure:aadApp/create
+    teamsapp.local.yml->>Azure:aadApp/update
+    teamsapp.local.yml->>Azure:arm/deploy
+    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/validateManifest
+    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/zipAppPackage
+    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/validateAppPackage
+    teamsapp.local.yml->>-TDP:teamsApp/update
+    teamsapp.local.yml-->>.vscode/tasks.json: 
+
+    .vscode/tasks.json->>+teamsapp.local.yml: Deploy (teamsfx)
+    teamsapp.local.yml->>-npm:cli/runNpmCommand (npm install --no-audit)
+    teamsapp.local.yml-->>.vscode/tasks.json: 
+
+    .vscode/tasks.json->>-npm: Start appplication locally (npm run dev:teamsfx)
+    .vscode/tasks.json-->>.vscode/launch.json: 
+
+    .vscode/launch.json->>.vscode/launch.json:Attach to Local Service
+    .vscode/launch.json->>-.vscode/launch.json:Launch App (Edge)
+
+    .vscode/launch.json->>Developer: Browser launched
+```
