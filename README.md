@@ -62,10 +62,6 @@ sequenceDiagram
     participant npm
     participant Browser
 
-    %% env/.env.local
-    %% env/.env.local.user
-    %% appPackage/manifest.json
-
     activate VSCode
     activate TDP
     activate Azure
