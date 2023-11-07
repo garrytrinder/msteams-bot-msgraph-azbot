@@ -47,45 +47,113 @@ To manage the conversation state saved to Azure Cosmos DB, use the web based [Az
 
 ![Screenshot of conversation state entry in Azure Cosmos DB Explorer](./assets/cosmos-db-explorer.png)
 
-## Sequence Diagram for F5
+## What happens when you press F5
+
+The following sequence diagram shows the interacts between components when you start a debug session in VSCode.
 
 ```mermaid
 sequenceDiagram
     actor Developer
-    participant .vscode/launch.json
-    participant .vscode/tasks.json
-    participant teamsapp.local.yml
+    participant VSCode
+    participant teamsfx
+    participant DevTunnel
     participant TDP
     participant Azure
     participant npm
+    participant Browser
 
-    Developer->>+.vscode/launch.json:"Debug in Teams (Edge)" F5
+    %% env/.env.local
+    %% env/.env.local.user
+    %% appPackage/manifest.json
+
+    activate VSCode
+    activate TDP
+    activate Azure
     
-    .vscode/launch.json->>+.vscode/tasks.json:Start Teams App Locally
-    
-    .vscode/tasks.json->>.vscode/tasks.json:Validate prerequisites (teamsfx)
-    .vscode/tasks.json->>.vscode/tasks.json:Start local tunnel (teamsfx)
-  
-    .vscode/tasks.json->>+teamsapp.local.yml: Provision (teamsfx)
-    teamsapp.local.yml->>TDP:teamsApp/create
-    teamsapp.local.yml->>Azure:aadApp/create
-    teamsapp.local.yml->>Azure:aadApp/update
-    teamsapp.local.yml->>Azure:arm/deploy
-    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/validateManifest
-    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/zipAppPackage
-    teamsapp.local.yml->>teamsapp.local.yml:teamsApp/validateAppPackage
-    teamsapp.local.yml->>-TDP:teamsApp/update
-    teamsapp.local.yml-->>.vscode/tasks.json: 
+    Developer->>VSCode:startDebug
 
-    .vscode/tasks.json->>+teamsapp.local.yml: Deploy (teamsfx)
-    teamsapp.local.yml->>-npm:cli/runNpmCommand (npm install --no-audit)
-    teamsapp.local.yml-->>.vscode/tasks.json: 
+    rect rgb(240,240,240)
+        VSCode->>teamsfx:Validate prerequisites (prerequisites, portOccupancy)
+        activate teamsfx
+        teamsfx-->>VSCode: result
+        deactivate teamsfx
+    end
 
-    .vscode/tasks.json->>-npm: Start appplication locally (npm run dev:teamsfx)
-    .vscode/tasks.json-->>.vscode/launch.json: 
+    rect rgb(240,240,240)
+        note right of VSCode: Start DevTunnel
+        VSCode->>teamsfx:Start local tunnel (type, port, protocol, access, endpoint, domain, env)
+        activate teamsfx
+        teamsfx->>DevTunnel:start(port, protocol, access)
+        activate DevTunnel
+        DevTunnel-->>teamsfx:tunnel (endpoint, domain)
+        teamsfx->>teamsfx:write to env file (endpoint, domain)
+        teamsfx-->>VSCode: output
+        deactivate teamsfx
+    end
 
-    .vscode/launch.json->>.vscode/launch.json:Attach to Local Service
-    .vscode/launch.json->>-.vscode/launch.json:Launch App (Edge)
+    rect rgb(240,240,240)
+        note right of VSCode: Provision app
+        VSCode->>teamsfx:Provision (teamsapp.local.yml)
+        activate teamsfx
+        rect rgb(200, 150, 255)
+            note right of teamsfx: Create app in Teams Developer Portal (TDP)
+            teamsfx->>TDP: teamsApp/create (name)
+            TDP-->>teamsfx: response (teamsAppId)
+            teamsfx->>teamsfx:write to env file (teamsAppId)
+        end
+        rect rgb(191, 223, 255)
+            note right of teamsfx: Provision Azure resources
+            teamsfx->>Azure: aadApp/create (name, generateClientSecret, signInAudience)
+            Azure-->>teamsfx: response (clientId, clientSecret, objectId, tenantId, authority, authorityHost)
+            teamsfx->>teamsfx:write to env file (clientId, objectId, tenantId, authority, authorityHost)
+            teamsfx->>teamsfx:write to env user file (clientSecret)
+            teamsfx->>Azure: aadApp/update (manifest)
+            Azure-->>teamsfx: response (manifest)
+            teamsfx->>teamsfx: update file (outputFilePath, manifest)
+            teamsfx->>Azure: arm/deploy (subscriptionId, resourceGroupName, templates)
+            Azure-->>teamsfx: result (202 Accepted)
+        end
+        rect rgb(200, 150, 255)
+            note right of teamsfx: Package and upload Teams app
+            teamsfx->>TDP: teamsApp/validateManifest (manifest)
+            TDP-->>teamsfx: result
+            teamsfx->>teamsfx: teamsApp/zipAppPackage (manifestPath, outputZipPath, outputJsonPath)
+            teamsfx->>TDP:teamsApp/validateAppPackage (appPackagePath)
+            TDP-->>teamsfx: result
+            teamsfx->>TDP:teamsApp/update (appPackagePath)
+            TDP-->>teamsfx: result
+        end
+            teamsfx-->>VSCode: output
+        deactivate teamsfx
+    end
 
-    .vscode/launch.json->>Developer: Browser launched
+    rect rgb(240,240,240)
+        note right of Developer: Start local dev server
+        VSCode->>teamsfx:Deploy (teamsapp.local.yml)
+        activate teamsfx
+        teamsfx->>npm:npm install
+        activate npm
+        npm-->>teamsfx:result
+        deactivate npm
+        teamsfx->>teamsfx: file/createOrUpdateEnvironmentFile (target, envs)
+        teamsfx-->>VSCode: output
+        deactivate teamsfx
+        VSCode->>npm: npm run dev:teamsfx
+        activate npm
+        npm-->>VSCode: output
+        VSCode-->>Developer: nodemon task
+    end
+
+    VSCode->>VSCode: Attach to debugger
+    VSCode->>Browser: Launch (sideloading URL)
+    activate Browser
+    Browser-->>VSCode: result
+    Browser-->>Developer: Microsoft Teams sideloading UI
+ 
+    deactivate DevTunnel
+    deactivate VSCode
+    deactivate TDP
+    deactivate Azure
+    deactivate npm
+    deactivate Browser
 ```
