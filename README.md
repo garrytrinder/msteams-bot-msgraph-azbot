@@ -153,3 +153,49 @@ sequenceDiagram
     deactivate npm
     deactivate Browser
 ```
+
+## System context diagram
+
+```mermaid
+C4Context
+    title System context diagram for Microsoft Teams app that can access data in Microsoft 365 via Microsoft Graph
+
+    Person(user,"Microsoft 365 User")
+    System_Ext(teams_client, "Microsoft Teams Client", "Desktop, web, or mobile")
+    System(app, "Microsoft Teams app", "Provides functionality to extend Microsoft Teams")
+    System_Ext(graph, "Microsoft Graph API", "Provides access to Microsoft 365 data")
+    System_Ext(entra,"Microsoft Entra ID", "Provides access to Microsoft Graph")
+
+    Rel(user, teams_client, "Uses")
+    Rel(teams_client, app, "Uses")
+    Rel(app, entra, "Uses")
+    Rel(app, graph, "Uses")
+```
+
+## Container diagram
+
+```mermaid
+C4Container
+    title Container context diagram for Microsoft Teams app that can access data in Microsoft 365 via Microsoft Graph
+
+    Person(user,"Microsoft 365 User")
+    System_Ext(teams_client, "Microsoft Teams Client", "Desktop, web or mobile")
+    System_Ext(entra,"Microsoft Entra ID", "Provides authentication functionality")
+    System_Ext(graph, "Microsoft Graph API","Provides access to Microsoft 365 data")
+
+    System_Boundary(app, "Microsoft Teams app") {
+        Container(teams_app, "Microsoft Teams app", "Microsoft Teams App Package", "Provides personal bot capability in Microsoft Teams")
+        Container(bot, "Bot Service", "Azure Bot Service", "Provides bridge between Microsoft Teams and bot logic")
+        Container(web_app, "Web Application", "nodejs, restify", "Provides the bot logic")
+        ContainerDb(db,"Database","Azure Cosmos DB","Stores bot state")
+    }
+
+    BiRel(web_app,graph,"Uses")
+    Rel(user,teams_client,"Uses")
+    Rel(teams_client,teams_app,"Uses")
+    BiRel(teams_app,bot,"Uses [HTTP]")
+    Rel(teams_app,entra,"Uses for SSO")
+    BiRel(web_app,bot,"Sends/receives activities")
+    Rel(web_app,entra,"Obtains access tokens from")
+    BiRel(web_app,db,"Reads/writes to")
+```
